@@ -17,9 +17,9 @@ var frequency = "";
 var currentTime = moment();
 
 function fillSchedule() {
+    $(".time-now").text("Time Now: " + moment().format("hh:mm A"));
     $(".table-content").remove();
     database.ref().on("child_added", function(childSnapshot){
-        console.log(childSnapshot.val().name);
 
         var databaseName = childSnapshot.val().name;
         var databaseDestination = childSnapshot.val().destination;
@@ -34,17 +34,13 @@ function fillSchedule() {
         var tMinutesUntilNextTrain = tFrequency - tRemainder;
         var nextTrain = moment().add(tMinutesUntilNextTrain, "minutes").format("hh:mm A")
 
-        console.log(tFrequency);
-
         $("#data-table").append("<tr class='table-content'><td>" + databaseName + "</td><td>" + databaseDestination + "</td><td>"
         + databaseFrequency + "</td><td>" + nextTrain + "</td><td>" + tMinutesUntilNextTrain +"</td></tr>");
     });
 }
 
 fillSchedule();
-setInterval(fillSchedule, 30 * 1000);
-
-$(".time-now").text("Time Now: " + moment().format("hh:mm A"));
+setInterval(fillSchedule, 60 * 1000);
 
 $("#add-train").on("click", function(event){
     event.preventDefault();
@@ -53,12 +49,19 @@ $("#add-train").on("click", function(event){
     destination = $("#destination-input").val().trim();
     startTime = $("#first-train-input").val().trim();
     frequency = $("#frequency-input").val().trim();
-    database.ref().push({
-        name: name,
-        destination: destination,
-        startTime: startTime,
-        frequency: frequency,
-        dateAdded: firebase.database.ServerValue.TIMESTAMP
-    });    
+
+    if (name == "" || destination == "" || startTime == "" || frequency == "") {
+        alert("Please fill all inputs");
+    } else {
+        database.ref().push({
+            name: name,
+            destination: destination,
+            startTime: startTime,
+            frequency: frequency,
+            dateAdded: firebase.database.ServerValue.TIMESTAMP
+        });
+        fillSchedule() 
+    }
+   
 });
 
