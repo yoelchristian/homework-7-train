@@ -16,6 +16,34 @@ var startTime = "";
 var frequency = "";
 var currentTime = moment();
 
+function fillSchedule() {
+    $(".table-content").remove();
+    database.ref().on("child_added", function(childSnapshot){
+        console.log(childSnapshot.val().name);
+
+        var databaseName = childSnapshot.val().name;
+        var databaseDestination = childSnapshot.val().destination;
+        var databaseStartTime = childSnapshot.val().startTime;
+        var databaseFrequency = childSnapshot.val().frequency;
+
+        var tFrequency = databaseFrequency;
+        var firstTime = databaseStartTime;
+        var firstTimePushedBackOneYear = moment(firstTime, "hh:mm").subtract(1, "years");
+        var timeDifference = moment().diff(moment(firstTimePushedBackOneYear), "minutes");
+        var tRemainder = timeDifference % tFrequency;
+        var tMinutesUntilNextTrain = tFrequency - tRemainder;
+        var nextTrain = moment().add(tMinutesUntilNextTrain, "minutes").format("hh:mm A")
+
+        console.log(tFrequency);
+
+        $("#data-table").append("<tr class='table-content'><td>" + databaseName + "</td><td>" + databaseDestination + "</td><td>"
+        + databaseFrequency + "</td><td>" + nextTrain + "</td><td>" + tMinutesUntilNextTrain +"</td></tr>");
+    });
+}
+
+fillSchedule();
+setInterval(fillSchedule, 30 * 1000);
+
 $(".time-now").text("Time Now: " + moment().format("hh:mm A"));
 
 $("#add-train").on("click", function(event){
@@ -34,25 +62,3 @@ $("#add-train").on("click", function(event){
     });    
 });
 
-database.ref().on("child_added", function(childSnapshot){
-    console.log(childSnapshot.val().name);
-
-    var databaseName = childSnapshot.val().name;
-    var databaseDestination = childSnapshot.val().destination;
-    var databaseStartTime = childSnapshot.val().startTime;
-    var databaseFrequency = childSnapshot.val().frequency;
-
-    var tFrequency = databaseFrequency;
-    var firstTime = databaseStartTime;
-    var firstTimePushedBackOneYear = moment(firstTime, "hh:mm").subtract(1, "years");
-    var timeDifference = moment().diff(moment(firstTimePushedBackOneYear), "minutes");
-    var tRemainder = timeDifference % tFrequency;
-    var tMinutesUntilNextTrain = tFrequency - tRemainder;
-    var nextTrain = moment().add(tMinutesUntilNextTrain, "minutes").format("hh:mm A")
-
-    console.log(tFrequency);
-
-    $("#data-table").append("<tr><td>" + databaseName + "</td><td>" + databaseDestination + "</td><td>"
-    + databaseFrequency + "</td><td>" + nextTrain + "</td><td>" + tMinutesUntilNextTrain +"</td></tr>");
-
-});
